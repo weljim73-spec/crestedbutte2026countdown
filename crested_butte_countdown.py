@@ -225,12 +225,6 @@ st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
   <!-- Barrel bands -->
   <rect x="4" y="32" width="56" height="3" fill="#654321"/>
   <rect x="4" y="42" width="56" height="3" fill="#654321"/>
-  <!-- Wood grain lines -->
-  <line x1="12" y1="28" x2="12" y2="48" stroke="#8B4513" stroke-width="1"/>
-  <line x1="22" y1="28" x2="22" y2="48" stroke="#8B4513" stroke-width="1"/>
-  <line x1="32" y1="28" x2="32" y2="48" stroke="#8B4513" stroke-width="1"/>
-  <line x1="42" y1="28" x2="42" y2="48" stroke="#8B4513" stroke-width="1"/>
-  <line x1="52" y1="28" x2="52" y2="48" stroke="#8B4513" stroke-width="1"/>
 </svg>
 </div>''', unsafe_allow_html=True)
 st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
