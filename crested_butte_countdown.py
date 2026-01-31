@@ -4,7 +4,7 @@ import time
 import requests
 
 # App version
-APP_VERSION = "1.6.1"
+APP_VERSION = "1.7"
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
@@ -138,9 +138,18 @@ st.markdown("""
         color: #666;
         margin-bottom: 30px;
     }
-    .time-unit {
-        display: inline-block;
-        margin: 10px 15px;
+
+    /* Countdown flexbox - always horizontal */
+    .countdown-flex {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        margin: 20px 0;
+    }
+    .countdown-flex .time-unit {
+        flex: 1 1 0;
+        max-width: 140px;
         text-align: center;
     }
     .time-value {
@@ -151,8 +160,8 @@ st.markdown("""
         padding: 20px 25px;
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        min-width: 100px;
-        display: inline-block;
+        min-width: 60px;
+        display: block;
     }
     .time-label {
         font-size: 1rem;
@@ -164,6 +173,7 @@ st.markdown("""
     .mountain-emoji {
         font-size: 4rem;
         margin: 20px 0;
+        text-align: center;
     }
 
     /* Slideshow styles */
@@ -210,6 +220,55 @@ st.markdown("""
         100% { opacity: 0; }
     }
 
+    /* Snow conditions styling */
+    .snow-metric {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        padding: 4px;
+        border-radius: 5px;
+        margin: 3px 0;
+        text-align: center;
+    }
+    .snow-metric-value {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #1565C0;
+    }
+    .snow-metric-label {
+        font-size: 0.5rem;
+        color: #666;
+        text-transform: uppercase;
+    }
+
+    /* ===== Mobile-first layout ===== */
+    /* Default (mobile): single column, natural DOM order */
+    .layout-wrapper {
+        display: block;
+    }
+    .layout-main {
+        order: 1;
+    }
+    .layout-weather {
+        order: 2;
+        margin-top: 20px;
+    }
+
+    /* Desktop: CSS grid with weather as left sidebar */
+    @media (min-width: 769px) {
+        .layout-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .layout-main {
+            order: 2;
+        }
+        .layout-weather {
+            order: 1;
+            margin-top: 280px;
+        }
+    }
+
     /* Mobile responsive styles */
     @media (max-width: 768px) {
         .countdown-title {
@@ -218,17 +277,14 @@ st.markdown("""
         .countdown-subtitle {
             font-size: 1rem !important;
         }
-        .time-value {
+        .countdown-flex .time-value {
             font-size: 2rem !important;
-            padding: 10px 12px !important;
-            min-width: 60px !important;
+            padding: 10px 8px !important;
+            min-width: 45px !important;
         }
-        .time-label {
+        .countdown-flex .time-label {
             font-size: 0.7rem !important;
             letter-spacing: 1px !important;
-        }
-        .time-unit {
-            margin: 5px 5px !important;
         }
         .slideshow-container {
             height: 250px !important;
@@ -251,33 +307,17 @@ st.markdown("""
         .countdown-title {
             font-size: 1.2rem !important;
         }
-        .time-value {
+        .countdown-flex .time-value {
             font-size: 1.5rem !important;
-            padding: 8px 8px !important;
-            min-width: 45px !important;
+            padding: 8px 4px !important;
+            min-width: 35px !important;
+        }
+        .countdown-flex .time-label {
+            font-size: 0.6rem !important;
         }
         .slideshow-container {
             height: 200px !important;
         }
-    }
-
-    /* Snow conditions sidebar styling */
-    .snow-metric {
-        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-        padding: 4px;
-        border-radius: 5px;
-        margin: 3px 0;
-        text-align: center;
-    }
-    .snow-metric-value {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #1565C0;
-    }
-    .snow-metric-label {
-        font-size: 0.5rem;
-        color: #666;
-        text-transform: uppercase;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -343,167 +383,144 @@ def get_weather_description(code):
     }
     return weather_codes.get(code, "Unknown")
 
-# Create two columns - sidebar for snow conditions, main for countdown
-col_snow, col_main = st.columns([1, 3])
+# === Build all content as HTML for mobile-first layout ===
 
-# Snow conditions sidebar
-with col_snow:
-    # Add spacing to align with photo slideshow
-    st.markdown('<div style="margin-top: 280px;"></div>', unsafe_allow_html=True)
+# -- Main content section --
+main_html = ''
 
-    weather_data = get_snow_conditions()
+# Header (icons)
+main_html += '''<div class="mountain-emoji">🏔️⛷️🎿
+<svg width="64" height="64" viewBox="0 0 64 64" style="vertical-align: middle; margin-left: 5px;">
+  <!-- Wooden barrel base -->
+  <ellipse cx="32" cy="48" rx="28" ry="10" fill="#8B4513"/>
+  <rect x="4" y="28" width="56" height="20" fill="#CD853F"/>
+  <ellipse cx="32" cy="28" rx="28" ry="10" fill="#DEB887"/>
+  <!-- Water -->
+  <ellipse cx="32" cy="28" rx="24" ry="7" fill="#87CEEB"/>
+  <!-- Bubbles -->
+  <circle cx="20" cy="26" r="3" fill="white" opacity="0.8"/>
+  <circle cx="28" cy="24" r="2" fill="white" opacity="0.7"/>
+  <circle cx="38" cy="27" r="2.5" fill="white" opacity="0.8"/>
+  <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
+  <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
+  <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
+</svg>
+</div>'''
 
-    if weather_data:
-        current = weather_data.get("current", {})
-        daily = weather_data.get("daily", {})
+# Title and subtitle
+main_html += '<h1 class="countdown-title">Crested Butte Trip Countdown</h1>'
+main_html += '<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>'
 
-        # Current temperature
-        temp = current.get("temperature_2m", "N/A")
-        st.markdown(f"""
-        <div class="snow-metric">
-            <div class="snow-metric-value">{temp}°F</div>
-            <div class="snow-metric-label">Current Temp</div>
-        </div>
-        """, unsafe_allow_html=True)
+# Countdown (always-horizontal flexbox)
+countdown = calculate_countdown()
 
-        # Weather condition
-        weather_code = current.get("weather_code", 0)
-        weather_desc = get_weather_description(weather_code)
-        st.markdown(f"""
-        <div class="snow-metric">
-            <div class="snow-metric-value" style="font-size: 0.75rem;">{weather_desc}</div>
-            <div class="snow-metric-label">Conditions</div>
-        </div>
-        """, unsafe_allow_html=True)
+if countdown is None:
+    main_html += '<div style="text-align:center; font-size:2rem; color:#2E7D32;">🎉 The trip has begun! Have an amazing time in Crested Butte! 🎉</div>'
+else:
+    main_html += '<div class="countdown-flex">'
+    for label, value, fmt in [
+        ("Weeks", countdown['weeks'], str(countdown['weeks'])),
+        ("Days", countdown['days'], str(countdown['days'])),
+        ("Hours", countdown['hours'], f"{countdown['hours']:02d}"),
+        ("Minutes", countdown['minutes'], f"{countdown['minutes']:02d}"),
+        ("Seconds", countdown['seconds'], f"{countdown['seconds']:02d}"),
+    ]:
+        main_html += f'''<div class="time-unit">
+    <div class="time-value">{fmt}</div>
+    <div class="time-label">{label}</div>
+</div>'''
+    main_html += '</div>'
 
-        # Snow depth
-        snow_depth = current.get("snow_depth", 0)
-        if snow_depth:
-            snow_depth_inches = round(snow_depth * 39.37, 1)  # Convert meters to inches
-        else:
-            snow_depth_inches = "N/A"
-        st.markdown(f"""
-        <div class="snow-metric">
-            <div class="snow-metric-value">{snow_depth_inches}"</div>
-            <div class="snow-metric-label">Snow Depth</div>
-        </div>
-        """, unsafe_allow_html=True)
+# -- Weather section --
+weather_html = ''
+weather_data = get_snow_conditions()
 
-        # 7-day snowfall forecast
-        if daily.get("snowfall_sum"):
-            total_7day_snow = sum(daily["snowfall_sum"])
-            st.markdown(f"""
-            <div class="snow-metric">
-                <div class="snow-metric-value">{total_7day_snow:.1f}"</div>
-                <div class="snow-metric-label">7-Day Snow Forecast</div>
-            </div>
-            """, unsafe_allow_html=True)
+if weather_data:
+    current = weather_data.get("current", {})
+    daily = weather_data.get("daily", {})
 
-        # Wind speed
-        wind = current.get("wind_speed_10m", "N/A")
-        st.markdown(f"""
-        <div class="snow-metric">
-            <div class="snow-metric-value">{wind} mph</div>
-            <div class="snow-metric-label">Wind Speed</div>
-        </div>
-        """, unsafe_allow_html=True)
+    # Current temperature
+    temp = current.get("temperature_2m", "N/A")
+    weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value">{temp}°F</div>
+    <div class="snow-metric-label">Current Temp</div>
+</div>'''
 
-        # High/Low today
-        if daily.get("temperature_2m_max") and daily.get("temperature_2m_min"):
-            high = daily["temperature_2m_max"][0]
-            low = daily["temperature_2m_min"][0]
-            st.markdown(f"""
-            <div class="snow-metric">
-                <div class="snow-metric-value">{high}° / {low}°</div>
-                <div class="snow-metric-label">High / Low Today</div>
-            </div>
-            """, unsafe_allow_html=True)
+    # Weather condition
+    weather_code = current.get("weather_code", 0)
+    weather_desc = get_weather_description(weather_code)
+    weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value" style="font-size: 0.75rem;">{weather_desc}</div>
+    <div class="snow-metric-label">Conditions</div>
+</div>'''
+
+    # Snow depth
+    snow_depth = current.get("snow_depth", 0)
+    if snow_depth:
+        snow_depth_inches = round(snow_depth * 39.37, 1)  # Convert meters to inches
     else:
-        st.warning("Unable to fetch snow conditions")
-        if st.button("Retry", key="retry_weather"):
-            st.cache_data.clear()
-            st.rerun()
+        snow_depth_inches = "N/A"
+    weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value">{snow_depth_inches}"</div>
+    <div class="snow-metric-label">Snow Depth</div>
+</div>'''
 
-# Main content
-with col_main:
-    # Header
-    st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
-    <svg width="64" height="64" viewBox="0 0 64 64" style="vertical-align: middle; margin-left: 5px;">
-      <!-- Wooden barrel base -->
-      <ellipse cx="32" cy="48" rx="28" ry="10" fill="#8B4513"/>
-      <rect x="4" y="28" width="56" height="20" fill="#CD853F"/>
-      <ellipse cx="32" cy="28" rx="28" ry="10" fill="#DEB887"/>
-      <!-- Water -->
-      <ellipse cx="32" cy="28" rx="24" ry="7" fill="#87CEEB"/>
-      <!-- Bubbles -->
-      <circle cx="20" cy="26" r="3" fill="white" opacity="0.8"/>
-      <circle cx="28" cy="24" r="2" fill="white" opacity="0.7"/>
-      <circle cx="38" cy="27" r="2.5" fill="white" opacity="0.8"/>
-      <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
-      <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
-      <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
-    </svg>
-    </div>''', unsafe_allow_html=True)
-    st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
-    st.markdown(f'<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>', unsafe_allow_html=True)
+    # 7-day snowfall forecast
+    if daily.get("snowfall_sum"):
+        total_7day_snow = sum(daily["snowfall_sum"])
+        weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value">{total_7day_snow:.1f}"</div>
+    <div class="snow-metric-label">7-Day Snow Forecast</div>
+</div>'''
 
-    # Countdown display
-    countdown = calculate_countdown()
+    # Wind speed
+    wind = current.get("wind_speed_10m", "N/A")
+    weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value">{wind} mph</div>
+    <div class="snow-metric-label">Wind Speed</div>
+</div>'''
 
-    if countdown is None:
-        st.balloons()
-        st.success("🎉 The trip has begun! Have an amazing time in Crested Butte! 🎉")
-    else:
-        # Create columns for the countdown display
-        col1, col2, col3, col4, col5 = st.columns(5)
+    # High/Low today
+    if daily.get("temperature_2m_max") and daily.get("temperature_2m_min"):
+        high = daily["temperature_2m_max"][0]
+        low = daily["temperature_2m_min"][0]
+        weather_html += f'''<div class="snow-metric">
+    <div class="snow-metric-value">{high}° / {low}°</div>
+    <div class="snow-metric-label">High / Low Today</div>
+</div>'''
+else:
+    weather_html += '<div style="color: orange; text-align: center;">Unable to fetch snow conditions</div>'
 
-        with col1:
-            st.markdown(f"""
-            <div class="time-unit">
-                <div class="time-value">{countdown['weeks']}</div>
-                <div class="time-label">Weeks</div>
-            </div>
-            """, unsafe_allow_html=True)
+# -- Slideshow --
+slideshow_html = '<div class="slideshow-container">'
+for url in image_urls:
+    slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
+slideshow_html += '</div>'
 
-        with col2:
-            st.markdown(f"""
-            <div class="time-unit">
-                <div class="time-value">{countdown['days']}</div>
-                <div class="time-label">Days</div>
-            </div>
-            """, unsafe_allow_html=True)
+# === Render the layout ===
+# Mobile-first: main content (icons, title, countdown) then weather then slideshow
+# Desktop: CSS grid repositions weather to left sidebar
+st.markdown(f'''
+<div class="layout-wrapper">
+    <div class="layout-main">
+        {main_html}
+        {slideshow_html}
+    </div>
+    <div class="layout-weather">
+        {weather_html}
+    </div>
+</div>
+''', unsafe_allow_html=True)
 
-        with col3:
-            st.markdown(f"""
-            <div class="time-unit">
-                <div class="time-value">{countdown['hours']:02d}</div>
-                <div class="time-label">Hours</div>
-            </div>
-            """, unsafe_allow_html=True)
+# Handle retry for weather errors (needs Streamlit widget outside the HTML)
+if not weather_data:
+    if st.button("Retry", key="retry_weather"):
+        st.cache_data.clear()
+        st.rerun()
 
-        with col4:
-            st.markdown(f"""
-            <div class="time-unit">
-                <div class="time-value">{countdown['minutes']:02d}</div>
-                <div class="time-label">Minutes</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col5:
-            st.markdown(f"""
-            <div class="time-unit">
-                <div class="time-value">{countdown['seconds']:02d}</div>
-                <div class="time-label">Seconds</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Photo slideshow with error handling for missing images
-    slideshow_html = '<div class="slideshow-container">'
-    for url in image_urls:
-        slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
-    slideshow_html += '</div>'
-
-    st.markdown(slideshow_html, unsafe_allow_html=True)
+# Balloons if trip has started
+if countdown is None:
+    st.balloons()
 
 # Snow effect
 snow_html = '''
