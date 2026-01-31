@@ -207,7 +207,7 @@ def calculate_countdown():
     }
 
 # Header
-st.markdown('<div class="mountain-emoji">🏔️⛷️🎿</div>', unsafe_allow_html=True)
+st.markdown('<div class="mountain-emoji">🏔️⛷️🎿🛁</div>', unsafe_allow_html=True)
 st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
 st.markdown(f'<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>', unsafe_allow_html=True)
 
