@@ -3,6 +3,9 @@ from datetime import datetime
 import time
 import requests
 
+# App version
+APP_VERSION = "1.6"
+
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
     page_title="Crested Butte Trip Countdown",
@@ -56,6 +59,9 @@ st.markdown(f"""
 <meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
 <meta name="twitter:image" content="{GITHUB_RAW_BASE}/preview.png" />
 """, unsafe_allow_html=True)
+
+# Version display - top left corner
+st.markdown(f'<div style="position: fixed; top: 8px; left: 12px; color: #999; font-size: 0.7rem; z-index: 10000;">v{APP_VERSION}</div>', unsafe_allow_html=True)
 
 # Build image URLs list for 10 images
 image_urls = [f"{GITHUB_RAW_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 11)]
