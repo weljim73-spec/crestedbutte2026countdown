@@ -207,7 +207,32 @@ def calculate_countdown():
     }
 
 # Header
-st.markdown('<div class="mountain-emoji">🏔️⛷️🎿🛁</div>', unsafe_allow_html=True)
+st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
+<svg width="64" height="64" viewBox="0 0 64 64" style="vertical-align: middle; margin-left: 5px;">
+  <!-- Wooden barrel base -->
+  <ellipse cx="32" cy="48" rx="28" ry="10" fill="#8B4513"/>
+  <rect x="4" y="28" width="56" height="20" fill="#CD853F"/>
+  <ellipse cx="32" cy="28" rx="28" ry="10" fill="#DEB887"/>
+  <!-- Water -->
+  <ellipse cx="32" cy="28" rx="24" ry="7" fill="#87CEEB"/>
+  <!-- Bubbles -->
+  <circle cx="20" cy="26" r="3" fill="white" opacity="0.8"/>
+  <circle cx="28" cy="24" r="2" fill="white" opacity="0.7"/>
+  <circle cx="38" cy="27" r="2.5" fill="white" opacity="0.8"/>
+  <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
+  <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
+  <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
+  <!-- Barrel bands -->
+  <rect x="4" y="32" width="56" height="3" fill="#654321"/>
+  <rect x="4" y="42" width="56" height="3" fill="#654321"/>
+  <!-- Wood grain lines -->
+  <line x1="12" y1="28" x2="12" y2="48" stroke="#8B4513" stroke-width="1"/>
+  <line x1="22" y1="28" x2="22" y2="48" stroke="#8B4513" stroke-width="1"/>
+  <line x1="32" y1="28" x2="32" y2="48" stroke="#8B4513" stroke-width="1"/>
+  <line x1="42" y1="28" x2="42" y2="48" stroke="#8B4513" stroke-width="1"/>
+  <line x1="52" y1="28" x2="52" y2="48" stroke="#8B4513" stroke-width="1"/>
+</svg>
+</div>''', unsafe_allow_html=True)
 st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
 st.markdown(f'<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>', unsafe_allow_html=True)
 
