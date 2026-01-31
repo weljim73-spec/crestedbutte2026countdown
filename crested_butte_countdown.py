@@ -24,8 +24,8 @@ st.markdown(f"""
 <meta name="twitter:image" content="{GITHUB_PAGES_BASE}/preview.png" />
 """, unsafe_allow_html=True)
 
-# Build image URLs list
-image_urls = [f"{GITHUB_PAGES_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 11)]
+# Build image URLs list for up to 50 images
+image_urls = [f"{GITHUB_PAGES_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 51)]
 
 # Custom CSS for styling with slideshow
 st.markdown("""
@@ -93,27 +93,11 @@ st.markdown("""
         height: 100%;
         object-fit: contain;
         opacity: 0;
-        animation: fadeInOut 50s infinite;
+        transition: opacity 1s ease-in-out;
     }
 
-    /* Stagger the animations for each image */
-    .slideshow-container img:nth-child(1) { animation-delay: 0s; }
-    .slideshow-container img:nth-child(2) { animation-delay: 5s; }
-    .slideshow-container img:nth-child(3) { animation-delay: 10s; }
-    .slideshow-container img:nth-child(4) { animation-delay: 15s; }
-    .slideshow-container img:nth-child(5) { animation-delay: 20s; }
-    .slideshow-container img:nth-child(6) { animation-delay: 25s; }
-    .slideshow-container img:nth-child(7) { animation-delay: 30s; }
-    .slideshow-container img:nth-child(8) { animation-delay: 35s; }
-    .slideshow-container img:nth-child(9) { animation-delay: 40s; }
-    .slideshow-container img:nth-child(10) { animation-delay: 45s; }
-
-    @keyframes fadeInOut {
-        0% { opacity: 0; }
-        2% { opacity: 1; }
-        10% { opacity: 1; }
-        12% { opacity: 0; }
-        100% { opacity: 0; }
+    .slideshow-container img.active {
+        opacity: 1;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -206,11 +190,74 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-# Photo slideshow with error handling for missing images
-slideshow_html = '<div class="slideshow-container">'
-for url in image_urls:
-    slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
-slideshow_html += '</div>'
+# Photo slideshow with JavaScript-based image detection and rotation
+# Convert Python list to JavaScript array
+js_image_array = str(image_urls).replace("'", '"')
+
+slideshow_html = f'''
+<div class="slideshow-container" id="slideshow">
+</div>
+
+<script>
+(function() {{
+    const allImageUrls = {js_image_array};
+    const container = document.getElementById('slideshow');
+    const loadedImages = [];
+    let currentIndex = 0;
+    let slideshowInterval = null;
+
+    // Test each image URL and add only valid ones
+    let loadCount = 0;
+
+    allImageUrls.forEach((url, index) => {{
+        const img = new Image();
+        img.onload = function() {{
+            // Image loaded successfully - add to slideshow
+            const imgElement = document.createElement('img');
+            imgElement.src = url;
+            imgElement.alt = 'Crested Butte';
+            imgElement.dataset.index = loadedImages.length;
+            container.appendChild(imgElement);
+            loadedImages.push(imgElement);
+
+            // Start slideshow when first image loads
+            if (loadedImages.length === 1) {{
+                imgElement.classList.add('active');
+            }}
+
+            loadCount++;
+            checkComplete();
+        }};
+        img.onerror = function() {{
+            // Image failed to load - skip it
+            loadCount++;
+            checkComplete();
+        }};
+        img.src = url;
+    }});
+
+    function checkComplete() {{
+        // When all images have been checked, start the slideshow
+        if (loadCount === allImageUrls.length && loadedImages.length > 1 && !slideshowInterval) {{
+            startSlideshow();
+        }}
+    }}
+
+    function startSlideshow() {{
+        slideshowInterval = setInterval(() => {{
+            // Hide current image
+            loadedImages[currentIndex].classList.remove('active');
+
+            // Move to next image
+            currentIndex = (currentIndex + 1) % loadedImages.length;
+
+            // Show next image
+            loadedImages[currentIndex].classList.add('active');
+        }}, 5000); // 5 seconds per image
+    }}
+}})();
+</script>
+'''
 
 st.markdown(slideshow_html, unsafe_allow_html=True)
 
