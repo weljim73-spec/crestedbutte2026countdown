@@ -9,23 +9,23 @@ st.set_page_config(
     layout="centered"
 )
 
-# GitHub repo base URL for images
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main"
+# GitHub Pages URL for images (more reliable than raw.githubusercontent.com)
+GITHUB_PAGES_BASE = "https://weljim73-spec.github.io/crestedbutte2026countdown"
 
 # Open Graph meta tags for link previews
 st.markdown(f"""
 <meta property="og:title" content="Crested Butte Trip Countdown" />
 <meta property="og:description" content="Counting down to our ski adventure in Crested Butte, Colorado - March 14, 2026!" />
-<meta property="og:image" content="{GITHUB_RAW_BASE}/preview.png" />
+<meta property="og:image" content="{GITHUB_PAGES_BASE}/preview.png" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Crested Butte Trip Countdown" />
 <meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
-<meta name="twitter:image" content="{GITHUB_RAW_BASE}/preview.png" />
+<meta name="twitter:image" content="{GITHUB_PAGES_BASE}/preview.png" />
 """, unsafe_allow_html=True)
 
 # Build image URLs list
-image_urls = [f"{GITHUB_RAW_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 11)]
+image_urls = [f"{GITHUB_PAGES_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 11)]
 
 # Custom CSS for styling with slideshow
 st.markdown("""
@@ -91,7 +91,7 @@ st.markdown("""
         left: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         opacity: 0;
         animation: fadeInOut 50s infinite;
     }
@@ -206,10 +206,10 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-# Photo slideshow
+# Photo slideshow with error handling for missing images
 slideshow_html = '<div class="slideshow-container">'
 for url in image_urls:
-    slideshow_html += f'<img src="{url}" alt="Crested Butte">'
+    slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
 slideshow_html += '</div>'
 
 st.markdown(slideshow_html, unsafe_allow_html=True)
