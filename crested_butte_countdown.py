@@ -9,23 +9,17 @@ st.set_page_config(
     layout="centered"
 )
 
-# Open Graph meta tags for link preview
-# Using a beautiful Crested Butte ski slope image
-OG_IMAGE = "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=1200&h=630&fit=crop"
-
-st.markdown(f"""
-<head>
-    <meta property="og:title" content="Crested Butte Trip Countdown" />
-    <meta property="og:description" content="Counting down to our ski adventure in Crested Butte, Colorado - March 14, 2026!" />
-    <meta property="og:image" content="{OG_IMAGE}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Crested Butte Trip Countdown" />
-    <meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
-    <meta name="twitter:image" content="{OG_IMAGE}" />
-</head>
+# Open Graph meta tags for link previews
+# IMPORTANT: Replace YOUR_USERNAME/YOUR_REPO with your actual GitHub username and repo name
+st.markdown("""
+<meta property="og:title" content="Crested Butte Trip Countdown" />
+<meta property="og:description" content="Counting down to our ski adventure in Crested Butte, Colorado - March 14, 2026!" />
+<meta property="og:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/preview.png" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Crested Butte Trip Countdown" />
+<meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
+<meta name="twitter:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/preview.png" />
 """, unsafe_allow_html=True)
 
 # Custom CSS for styling
