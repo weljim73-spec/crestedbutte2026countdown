@@ -9,19 +9,25 @@ st.set_page_config(
     layout="centered"
 )
 
+# GitHub repo base URL for images
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main"
+
 # Open Graph meta tags for link previews
-st.markdown("""
+st.markdown(f"""
 <meta property="og:title" content="Crested Butte Trip Countdown" />
 <meta property="og:description" content="Counting down to our ski adventure in Crested Butte, Colorado - March 14, 2026!" />
-<meta property="og:image" content="https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main/preview.png" />
+<meta property="og:image" content="{GITHUB_RAW_BASE}/preview.png" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Crested Butte Trip Countdown" />
 <meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
-<meta name="twitter:image" content="https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main/preview.png" />
+<meta name="twitter:image" content="{GITHUB_RAW_BASE}/preview.png" />
 """, unsafe_allow_html=True)
 
-# Custom CSS for styling
+# Build image URLs list
+image_urls = [f"{GITHUB_RAW_BASE}/image{str(i).zfill(2)}.jpg" for i in range(1, 11)]
+
+# Custom CSS for styling with slideshow
 st.markdown("""
 <style>
     .countdown-container {
@@ -64,6 +70,50 @@ st.markdown("""
     .mountain-emoji {
         font-size: 4rem;
         margin: 20px 0;
+    }
+
+    /* Slideshow styles */
+    .slideshow-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        height: 400px;
+        margin: 30px auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        background-color: #000;
+    }
+
+    .slideshow-container img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        animation: fadeInOut 50s infinite;
+    }
+
+    /* Stagger the animations for each image */
+    .slideshow-container img:nth-child(1) { animation-delay: 0s; }
+    .slideshow-container img:nth-child(2) { animation-delay: 5s; }
+    .slideshow-container img:nth-child(3) { animation-delay: 10s; }
+    .slideshow-container img:nth-child(4) { animation-delay: 15s; }
+    .slideshow-container img:nth-child(5) { animation-delay: 20s; }
+    .slideshow-container img:nth-child(6) { animation-delay: 25s; }
+    .slideshow-container img:nth-child(7) { animation-delay: 30s; }
+    .slideshow-container img:nth-child(8) { animation-delay: 35s; }
+    .slideshow-container img:nth-child(9) { animation-delay: 40s; }
+    .slideshow-container img:nth-child(10) { animation-delay: 45s; }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        2% { opacity: 1; }
+        10% { opacity: 1; }
+        12% { opacity: 0; }
+        100% { opacity: 0; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -155,6 +205,14 @@ else:
             <div class="time-label">Seconds</div>
         </div>
         """, unsafe_allow_html=True)
+
+# Photo slideshow
+slideshow_html = '<div class="slideshow-container">'
+for url in image_urls:
+    slideshow_html += f'<img src="{url}" alt="Crested Butte">'
+slideshow_html += '</div>'
+
+st.markdown(slideshow_html, unsafe_allow_html=True)
 
 # Auto-refresh every second
 time.sleep(1)
