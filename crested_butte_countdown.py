@@ -222,9 +222,6 @@ st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
   <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
   <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
   <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
-  <!-- Barrel bands -->
-  <rect x="4" y="32" width="56" height="3" fill="#654321"/>
-  <rect x="4" y="42" width="56" height="3" fill="#654321"/>
 </svg>
 </div>''', unsafe_allow_html=True)
 st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
