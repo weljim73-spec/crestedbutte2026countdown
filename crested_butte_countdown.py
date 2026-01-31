@@ -288,8 +288,8 @@ col_snow, col_main = st.columns([1, 3])
 
 # Snow conditions sidebar
 with col_snow:
-    st.markdown("### ❄️ Crested Butte")
-    st.markdown("#### Snow Conditions")
+    # Add spacing to align with photo slideshow
+    st.markdown('<div style="margin-top: 280px;"></div>', unsafe_allow_html=True)
 
     weather_data = get_snow_conditions()
 
