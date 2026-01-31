@@ -1,16 +1,46 @@
 import streamlit as st
 from datetime import datetime
 import time
+import requests
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
     page_title="Crested Butte Trip Countdown",
     page_icon="🏔️",
-    layout="centered"
+    layout="wide"
 )
 
 # GitHub raw URL for images
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main"
+
+# Crested Butte Mountain coordinates
+CB_LAT = 38.8697
+CB_LON = -106.9878
+
+# Function to fetch snow conditions from Open-Meteo API
+@st.cache_data(ttl=1800)  # Cache for 30 minutes
+def get_snow_conditions():
+    """Fetch current weather and snow conditions for Crested Butte."""
+    try:
+        # Open-Meteo API - free, no API key required
+        url = f"https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": CB_LAT,
+            "longitude": CB_LON,
+            "current": "temperature_2m,weather_code,wind_speed_10m,snow_depth",
+            "daily": "snowfall_sum,temperature_2m_max,temperature_2m_min,precipitation_sum",
+            "timezone": "America/Denver",
+            "forecast_days": 7,
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "precipitation_unit": "inch"
+        }
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+    except Exception as e:
+        pass
+    return None
 
 # Open Graph meta tags for link previews
 st.markdown(f"""
@@ -170,6 +200,25 @@ st.markdown("""
         12% { opacity: 0; }
         100% { opacity: 0; }
     }
+
+    /* Snow conditions sidebar styling */
+    .snow-metric {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+        text-align: center;
+    }
+    .snow-metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1565C0;
+    }
+    .snow-metric-label {
+        font-size: 0.9rem;
+        color: #666;
+        text-transform: uppercase;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -206,84 +255,192 @@ def calculate_countdown():
         'seconds': seconds
     }
 
-# Header
-st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
-<svg width="64" height="64" viewBox="0 0 64 64" style="vertical-align: middle; margin-left: 5px;">
-  <!-- Wooden barrel base -->
-  <ellipse cx="32" cy="48" rx="28" ry="10" fill="#8B4513"/>
-  <rect x="4" y="28" width="56" height="20" fill="#CD853F"/>
-  <ellipse cx="32" cy="28" rx="28" ry="10" fill="#DEB887"/>
-  <!-- Water -->
-  <ellipse cx="32" cy="28" rx="24" ry="7" fill="#87CEEB"/>
-  <!-- Bubbles -->
-  <circle cx="20" cy="26" r="3" fill="white" opacity="0.8"/>
-  <circle cx="28" cy="24" r="2" fill="white" opacity="0.7"/>
-  <circle cx="38" cy="27" r="2.5" fill="white" opacity="0.8"/>
-  <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
-  <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
-  <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
-</svg>
-</div>''', unsafe_allow_html=True)
-st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
-st.markdown(f'<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>', unsafe_allow_html=True)
+# Weather code to description mapping
+def get_weather_description(code):
+    weather_codes = {
+        0: "Clear sky ☀️",
+        1: "Mainly clear 🌤️",
+        2: "Partly cloudy ⛅",
+        3: "Overcast ☁️",
+        45: "Foggy 🌫️",
+        48: "Rime fog 🌫️",
+        51: "Light drizzle 🌧️",
+        53: "Drizzle 🌧️",
+        55: "Dense drizzle 🌧️",
+        61: "Slight rain 🌧️",
+        63: "Rain 🌧️",
+        65: "Heavy rain 🌧️",
+        71: "Slight snow 🌨️",
+        73: "Snow 🌨️",
+        75: "Heavy snow ❄️",
+        77: "Snow grains 🌨️",
+        80: "Slight showers 🌧️",
+        81: "Showers 🌧️",
+        82: "Violent showers 🌧️",
+        85: "Slight snow showers 🌨️",
+        86: "Heavy snow showers ❄️",
+        95: "Thunderstorm ⛈️",
+    }
+    return weather_codes.get(code, "Unknown")
 
-# Countdown display
-countdown = calculate_countdown()
+# Create two columns - sidebar for snow conditions, main for countdown
+col_snow, col_main = st.columns([1, 3])
 
-if countdown is None:
-    st.balloons()
-    st.success("🎉 The trip has begun! Have an amazing time in Crested Butte! 🎉")
-else:
-    # Create columns for the countdown display
-    col1, col2, col3, col4, col5 = st.columns(5)
+# Snow conditions sidebar
+with col_snow:
+    st.markdown("### ❄️ Crested Butte")
+    st.markdown("#### Snow Conditions")
 
-    with col1:
+    weather_data = get_snow_conditions()
+
+    if weather_data:
+        current = weather_data.get("current", {})
+        daily = weather_data.get("daily", {})
+
+        # Current temperature
+        temp = current.get("temperature_2m", "N/A")
         st.markdown(f"""
-        <div class="time-unit">
-            <div class="time-value">{countdown['weeks']}</div>
-            <div class="time-label">Weeks</div>
+        <div class="snow-metric">
+            <div class="snow-metric-value">{temp}°F</div>
+            <div class="snow-metric-label">Current Temp</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with col2:
+        # Weather condition
+        weather_code = current.get("weather_code", 0)
+        weather_desc = get_weather_description(weather_code)
         st.markdown(f"""
-        <div class="time-unit">
-            <div class="time-value">{countdown['days']}</div>
-            <div class="time-label">Days</div>
+        <div class="snow-metric">
+            <div class="snow-metric-value" style="font-size: 1.5rem;">{weather_desc}</div>
+            <div class="snow-metric-label">Conditions</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with col3:
+        # Snow depth
+        snow_depth = current.get("snow_depth", 0)
+        if snow_depth:
+            snow_depth_inches = round(snow_depth * 39.37, 1)  # Convert meters to inches
+        else:
+            snow_depth_inches = "N/A"
         st.markdown(f"""
-        <div class="time-unit">
-            <div class="time-value">{countdown['hours']:02d}</div>
-            <div class="time-label">Hours</div>
+        <div class="snow-metric">
+            <div class="snow-metric-value">{snow_depth_inches}"</div>
+            <div class="snow-metric-label">Snow Depth</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with col4:
+        # 7-day snowfall forecast
+        if daily.get("snowfall_sum"):
+            total_7day_snow = sum(daily["snowfall_sum"])
+            st.markdown(f"""
+            <div class="snow-metric">
+                <div class="snow-metric-value">{total_7day_snow:.1f}"</div>
+                <div class="snow-metric-label">7-Day Snow Forecast</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Wind speed
+        wind = current.get("wind_speed_10m", "N/A")
         st.markdown(f"""
-        <div class="time-unit">
-            <div class="time-value">{countdown['minutes']:02d}</div>
-            <div class="time-label">Minutes</div>
+        <div class="snow-metric">
+            <div class="snow-metric-value">{wind} mph</div>
+            <div class="snow-metric-label">Wind Speed</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with col5:
-        st.markdown(f"""
-        <div class="time-unit">
-            <div class="time-value">{countdown['seconds']:02d}</div>
-            <div class="time-label">Seconds</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # High/Low today
+        if daily.get("temperature_2m_max") and daily.get("temperature_2m_min"):
+            high = daily["temperature_2m_max"][0]
+            low = daily["temperature_2m_min"][0]
+            st.markdown(f"""
+            <div class="snow-metric">
+                <div class="snow-metric-value">{high}° / {low}°</div>
+                <div class="snow-metric-label">High / Low Today</div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.warning("Unable to fetch snow conditions")
 
-# Photo slideshow with error handling for missing images
-slideshow_html = '<div class="slideshow-container">'
-for url in image_urls:
-    slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
-slideshow_html += '</div>'
+# Main content
+with col_main:
+    # Header
+    st.markdown('''<div class="mountain-emoji">🏔️⛷️🎿
+    <svg width="64" height="64" viewBox="0 0 64 64" style="vertical-align: middle; margin-left: 5px;">
+      <!-- Wooden barrel base -->
+      <ellipse cx="32" cy="48" rx="28" ry="10" fill="#8B4513"/>
+      <rect x="4" y="28" width="56" height="20" fill="#CD853F"/>
+      <ellipse cx="32" cy="28" rx="28" ry="10" fill="#DEB887"/>
+      <!-- Water -->
+      <ellipse cx="32" cy="28" rx="24" ry="7" fill="#87CEEB"/>
+      <!-- Bubbles -->
+      <circle cx="20" cy="26" r="3" fill="white" opacity="0.8"/>
+      <circle cx="28" cy="24" r="2" fill="white" opacity="0.7"/>
+      <circle cx="38" cy="27" r="2.5" fill="white" opacity="0.8"/>
+      <circle cx="44" cy="25" r="2" fill="white" opacity="0.6"/>
+      <circle cx="24" cy="29" r="1.5" fill="white" opacity="0.7"/>
+      <circle cx="40" cy="30" r="1.5" fill="white" opacity="0.6"/>
+    </svg>
+    </div>''', unsafe_allow_html=True)
+    st.markdown('<h1 class="countdown-title">Crested Butte Trip Countdown</h1>', unsafe_allow_html=True)
+    st.markdown(f'<p class="countdown-subtitle">Adventure begins: March 14, 2026</p>', unsafe_allow_html=True)
 
-st.markdown(slideshow_html, unsafe_allow_html=True)
+    # Countdown display
+    countdown = calculate_countdown()
+
+    if countdown is None:
+        st.balloons()
+        st.success("🎉 The trip has begun! Have an amazing time in Crested Butte! 🎉")
+    else:
+        # Create columns for the countdown display
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            st.markdown(f"""
+            <div class="time-unit">
+                <div class="time-value">{countdown['weeks']}</div>
+                <div class="time-label">Weeks</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+            <div class="time-unit">
+                <div class="time-value">{countdown['days']}</div>
+                <div class="time-label">Days</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col3:
+            st.markdown(f"""
+            <div class="time-unit">
+                <div class="time-value">{countdown['hours']:02d}</div>
+                <div class="time-label">Hours</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col4:
+            st.markdown(f"""
+            <div class="time-unit">
+                <div class="time-value">{countdown['minutes']:02d}</div>
+                <div class="time-label">Minutes</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col5:
+            st.markdown(f"""
+            <div class="time-unit">
+                <div class="time-value">{countdown['seconds']:02d}</div>
+                <div class="time-label">Seconds</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Photo slideshow with error handling for missing images
+    slideshow_html = '<div class="slideshow-container">'
+    for url in image_urls:
+        slideshow_html += f'<img src="{url}" alt="" onerror="this.style.display=\'none\'">'
+    slideshow_html += '</div>'
+
+    st.markdown(slideshow_html, unsafe_allow_html=True)
 
 # Snow effect
 snow_html = '''
