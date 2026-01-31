@@ -204,18 +204,18 @@ st.markdown("""
     /* Snow conditions sidebar styling */
     .snow-metric {
         background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
+        padding: 4px;
+        border-radius: 5px;
+        margin: 3px 0;
         text-align: center;
     }
     .snow-metric-value {
-        font-size: 2rem;
+        font-size: 0.9rem;
         font-weight: bold;
         color: #1565C0;
     }
     .snow-metric-label {
-        font-size: 0.9rem;
+        font-size: 0.5rem;
         color: #666;
         text-transform: uppercase;
     }
@@ -311,7 +311,7 @@ with col_snow:
         weather_desc = get_weather_description(weather_code)
         st.markdown(f"""
         <div class="snow-metric">
-            <div class="snow-metric-value" style="font-size: 1.5rem;">{weather_desc}</div>
+            <div class="snow-metric-value" style="font-size: 0.75rem;">{weather_desc}</div>
             <div class="snow-metric-label">Conditions</div>
         </div>
         """, unsafe_allow_html=True)
