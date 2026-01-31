@@ -21,25 +21,28 @@ CB_LON = -106.9878
 @st.cache_data(ttl=1800)  # Cache for 30 minutes
 def get_snow_conditions():
     """Fetch current weather and snow conditions for Crested Butte."""
-    try:
-        # Open-Meteo API - free, no API key required
-        url = f"https://api.open-meteo.com/v1/forecast"
-        params = {
-            "latitude": CB_LAT,
-            "longitude": CB_LON,
-            "current": "temperature_2m,weather_code,wind_speed_10m,snow_depth",
-            "daily": "snowfall_sum,temperature_2m_max,temperature_2m_min,precipitation_sum",
-            "timezone": "America/Denver",
-            "forecast_days": 7,
-            "temperature_unit": "fahrenheit",
-            "wind_speed_unit": "mph",
-            "precipitation_unit": "inch"
-        }
-        response = requests.get(url, params=params, timeout=10)
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        pass
+    max_retries = 3
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": CB_LAT,
+        "longitude": CB_LON,
+        "current": "temperature_2m,weather_code,wind_speed_10m,snow_depth",
+        "daily": "snowfall_sum,temperature_2m_max,temperature_2m_min,precipitation_sum",
+        "timezone": "America/Denver",
+        "forecast_days": 7,
+        "temperature_unit": "fahrenheit",
+        "wind_speed_unit": "mph",
+        "precipitation_unit": "inch"
+    }
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                return response.json()
+        except Exception:
+            pass
+        if attempt < max_retries - 1:
+            time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
     return None
 
 # Open Graph meta tags for link previews
@@ -201,6 +204,57 @@ st.markdown("""
         100% { opacity: 0; }
     }
 
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .countdown-title {
+            font-size: 1.5rem !important;
+        }
+        .countdown-subtitle {
+            font-size: 1rem !important;
+        }
+        .time-value {
+            font-size: 2rem !important;
+            padding: 10px 12px !important;
+            min-width: 60px !important;
+        }
+        .time-label {
+            font-size: 0.7rem !important;
+            letter-spacing: 1px !important;
+        }
+        .time-unit {
+            margin: 5px 5px !important;
+        }
+        .slideshow-container {
+            height: 250px !important;
+            max-width: 100% !important;
+            margin: 15px auto !important;
+        }
+        .mountain-emoji {
+            font-size: 2.5rem !important;
+        }
+        .snow-metric {
+            padding: 3px !important;
+            margin: 2px 0 !important;
+        }
+        .snow-metric-value {
+            font-size: 0.8rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .countdown-title {
+            font-size: 1.2rem !important;
+        }
+        .time-value {
+            font-size: 1.5rem !important;
+            padding: 8px 8px !important;
+            min-width: 45px !important;
+        }
+        .slideshow-container {
+            height: 200px !important;
+        }
+    }
+
     /* Snow conditions sidebar styling */
     .snow-metric {
         background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
@@ -360,6 +414,9 @@ with col_snow:
             """, unsafe_allow_html=True)
     else:
         st.warning("Unable to fetch snow conditions")
+        if st.button("Retry", key="retry_weather"):
+            st.cache_data.clear()
+            st.rerun()
 
 # Main content
 with col_main:
@@ -469,6 +526,6 @@ snow_html = '''
 '''
 st.markdown(snow_html, unsafe_allow_html=True)
 
-# Auto-refresh every second
-time.sleep(1)
+# Auto-refresh every 5 seconds
+time.sleep(5)
 st.rerun()
