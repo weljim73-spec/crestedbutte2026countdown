@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 import time
 
-# Page configuration
+# Page configuration - MUST be first Streamlit command
 st.set_page_config(
     page_title="Crested Butte Trip Countdown",
     page_icon="🏔️",
@@ -10,16 +10,15 @@ st.set_page_config(
 )
 
 # Open Graph meta tags for link previews
-# IMPORTANT: Replace YOUR_USERNAME/YOUR_REPO with your actual GitHub username and repo name
 st.markdown("""
 <meta property="og:title" content="Crested Butte Trip Countdown" />
 <meta property="og:description" content="Counting down to our ski adventure in Crested Butte, Colorado - March 14, 2026!" />
-<meta property="og:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/preview.png" />
+<meta property="og:image" content="https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main/preview.png" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Crested Butte Trip Countdown" />
 <meta name="twitter:description" content="Counting down to our ski adventure in Crested Butte, Colorado!" />
-<meta name="twitter:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/preview.png" />
+<meta name="twitter:image" content="https://raw.githubusercontent.com/weljim73-spec/crestedbutte2026countdown/main/preview.png" />
 """, unsafe_allow_html=True)
 
 # Custom CSS for styling
