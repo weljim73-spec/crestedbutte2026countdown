@@ -271,6 +271,9 @@ st.markdown("""
 
     /* Mobile responsive styles */
     @media (max-width: 768px) {
+        .mountain-emoji {
+            padding-top: 40px !important;
+        }
         .countdown-title {
             font-size: 1.5rem !important;
         }
