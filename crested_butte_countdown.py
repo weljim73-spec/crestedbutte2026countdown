@@ -4,7 +4,7 @@ import time
 import requests
 
 # App version
-APP_VERSION = "1.7"
+APP_VERSION = "1.8"
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
@@ -29,7 +29,7 @@ def get_snow_conditions():
     params = {
         "latitude": CB_LAT,
         "longitude": CB_LON,
-        "current": "temperature_2m,weather_code,wind_speed_10m,snow_depth",
+        "current": "temperature_2m,weather_code,wind_speed_10m",
         "daily": "snowfall_sum,temperature_2m_max,temperature_2m_min,precipitation_sum",
         "timezone": "America/Denver",
         "forecast_days": 7,
@@ -47,6 +47,30 @@ def get_snow_conditions():
         if attempt < max_retries - 1:
             time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
     raise RuntimeError("Failed to fetch snow conditions after retries")
+
+# SNOTEL Butte station (#380) near Crested Butte - actual measured snowpack
+SNOTEL_URL = (
+    "https://wcc.sc.egov.usda.gov/reportGenerator/view_csv/"
+    "customSingleStationReport/daily/"
+    "380:CO:SNTL%7Cid=%22%22%7Cname/0,0/"
+    "SNWD::value"
+)
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour (SNOTEL updates daily)
+def get_snotel_snow_depth():
+    """Fetch actual snow depth from SNOTEL Butte station (#380) near Crested Butte."""
+    try:
+        response = requests.get(SNOTEL_URL, timeout=15)
+        response.raise_for_status()
+        lines = response.text.strip().split('\n')
+        data_lines = [line for line in lines if not line.startswith('#') and line.strip()]
+        if len(data_lines) >= 2:  # header + at least one data row
+            values = data_lines[-1].split(',')
+            if len(values) >= 2 and values[1].strip():
+                return round(float(values[1].strip()), 1)
+    except Exception:
+        pass
+    return None
 
 # Open Graph meta tags for link previews
 st.markdown(f"""
@@ -477,23 +501,12 @@ if weather_data:
     <div class="snow-metric-label">Conditions</div>
 </div>'''
 
-    # Snow depth - convert to inches based on the unit the API returns
-    snow_depth = current.get("snow_depth")
-    if snow_depth is not None:
-        snow_depth_unit = weather_data.get("current_units", {}).get("snow_depth", "m")
-        if snow_depth_unit == "m":
-            snow_depth_inches = round(snow_depth * 39.37, 1)
-        elif snow_depth_unit == "cm":
-            snow_depth_inches = round(snow_depth / 2.54, 1)
-        elif snow_depth_unit in ("inch", "in"):
-            snow_depth_inches = round(snow_depth, 1)
-        else:
-            snow_depth_inches = round(snow_depth * 39.37, 1)  # assume meters
-    else:
-        snow_depth_inches = "N/A"
+    # Snow depth from SNOTEL (actual measured snowpack near CB)
+    snotel_depth = get_snotel_snow_depth()
+    snow_depth_display = f'{snotel_depth}"' if snotel_depth is not None else "N/A"
     weather_html += f'''<div class="snow-metric">
-    <div class="snow-metric-value">{snow_depth_inches}"</div>
-    <div class="snow-metric-label">Snow Depth</div>
+    <div class="snow-metric-value">{snow_depth_display}</div>
+    <div class="snow-metric-label">Snowpack (SNOTEL)</div>
 </div>'''
 
     # 7-day snowfall forecast
