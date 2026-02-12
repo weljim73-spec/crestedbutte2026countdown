@@ -4,7 +4,7 @@ import time
 import requests
 
 # App version
-APP_VERSION = "1.8"
+APP_VERSION = "1.9"
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
@@ -48,26 +48,30 @@ def get_snow_conditions():
             time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
     raise RuntimeError("Failed to fetch snow conditions after retries")
 
-# SNOTEL Butte station (#380) near Crested Butte - actual measured snowpack
-SNOTEL_URL = (
-    "https://wcc.sc.egov.usda.gov/reportGenerator/view_csv/"
-    "customSingleStationReport/daily/"
-    "380:CO:SNTL%7Cid=%22%22%7Cname/0,0/"
-    "SNWD::value"
-)
+# SnoCountry API - resort-reported snow base depth
+SNOCOUNTRY_URL = "http://feeds.snocountry.net/conditions.php"
+CB_RESORT_ID = "303010"  # Crested Butte Mountain Resort
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour (SNOTEL updates daily)
-def get_snotel_snow_depth():
-    """Fetch actual snow depth from SNOTEL Butte station (#380) near Crested Butte."""
+@st.cache_data(ttl=1800)  # Cache for 30 minutes
+def get_resort_base_depth():
+    """Fetch Crested Butte resort-reported base depth from SnoCountry."""
     try:
-        response = requests.get(SNOTEL_URL, timeout=15)
+        response = requests.get(SNOCOUNTRY_URL, params={
+            "apiKey": "SnoCountry.example",
+            "ids": CB_RESORT_ID,
+        }, timeout=15)
         response.raise_for_status()
-        lines = response.text.strip().split('\n')
-        data_lines = [line for line in lines if not line.startswith('#') and line.strip()]
-        if len(data_lines) >= 2:  # header + at least one data row
-            values = data_lines[-1].split(',')
-            if len(values) >= 2 and values[1].strip():
-                return round(float(values[1].strip()), 1)
+        data = response.json()
+        if data.get("items"):
+            resort = data["items"][0]
+            base_min = resort.get("avgBaseDepthMin", "")
+            base_max = resort.get("avgBaseDepthMax", "")
+            if base_min and base_max and base_min == base_max:
+                return int(base_min)
+            elif base_min and base_max:
+                return f'{base_min}-{base_max}'
+            elif base_min:
+                return int(base_min)
     except Exception:
         pass
     return None
@@ -501,12 +505,12 @@ if weather_data:
     <div class="snow-metric-label">Conditions</div>
 </div>'''
 
-    # Snow depth from SNOTEL (actual measured snowpack near CB)
-    snotel_depth = get_snotel_snow_depth()
-    snow_depth_display = f'{snotel_depth}"' if snotel_depth is not None else "N/A"
+    # Resort-reported snow base depth from SnoCountry
+    base_depth = get_resort_base_depth()
+    base_display = f'{base_depth}"' if base_depth is not None else "N/A"
     weather_html += f'''<div class="snow-metric">
-    <div class="snow-metric-value">{snow_depth_display}</div>
-    <div class="snow-metric-label">Snowpack (SNOTEL)</div>
+    <div class="snow-metric-value">{base_display}</div>
+    <div class="snow-metric-label">Snow Base</div>
 </div>'''
 
     # 7-day snowfall forecast
