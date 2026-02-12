@@ -238,6 +238,12 @@ st.markdown("""
         color: #666;
         text-transform: uppercase;
     }
+    .snow-updated-badge {
+        text-align: center;
+        font-size: 0.55rem;
+        color: #90A4AE;
+        margin-bottom: 4px;
+    }
 
     /* ===== Mobile-first layout ===== */
     /* Default (mobile): single column, natural DOM order */
@@ -446,6 +452,16 @@ if weather_data:
     current = weather_data.get("current", {})
     daily = weather_data.get("daily", {})
 
+    # Last updated badge
+    obs_time = current.get("time", "")
+    if obs_time:
+        try:
+            obs_dt = datetime.strptime(obs_time, "%Y-%m-%dT%H:%M")
+            updated_label = obs_dt.strftime("%-I:%M %p, %b %-d")
+        except ValueError:
+            updated_label = obs_time
+        weather_html += f'<div class="snow-updated-badge">Updated {updated_label}</div>'
+
     # Current temperature
     temp = current.get("temperature_2m", "N/A")
     weather_html += f'''<div class="snow-metric">
@@ -461,10 +477,18 @@ if weather_data:
     <div class="snow-metric-label">Conditions</div>
 </div>'''
 
-    # Snow depth
+    # Snow depth - convert to inches based on the unit the API returns
     snow_depth = current.get("snow_depth")
     if snow_depth is not None:
-        snow_depth_inches = round(snow_depth * 39.37, 1)  # Convert meters to inches
+        snow_depth_unit = weather_data.get("current_units", {}).get("snow_depth", "m")
+        if snow_depth_unit == "m":
+            snow_depth_inches = round(snow_depth * 39.37, 1)
+        elif snow_depth_unit == "cm":
+            snow_depth_inches = round(snow_depth / 2.54, 1)
+        elif snow_depth_unit in ("inch", "in"):
+            snow_depth_inches = round(snow_depth, 1)
+        else:
+            snow_depth_inches = round(snow_depth * 39.37, 1)  # assume meters
     else:
         snow_depth_inches = "N/A"
     weather_html += f'''<div class="snow-metric">
