@@ -46,7 +46,7 @@ def get_snow_conditions():
             pass
         if attempt < max_retries - 1:
             time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
-    return None
+    raise RuntimeError("Failed to fetch snow conditions after retries")
 
 # Open Graph meta tags for link previews
 st.markdown(f"""
@@ -437,7 +437,10 @@ else:
 
 # -- Weather section --
 weather_html = ''
-weather_data = get_snow_conditions()
+try:
+    weather_data = get_snow_conditions()
+except RuntimeError:
+    weather_data = None
 
 if weather_data:
     current = weather_data.get("current", {})
@@ -459,8 +462,8 @@ if weather_data:
 </div>'''
 
     # Snow depth
-    snow_depth = current.get("snow_depth", 0)
-    if snow_depth:
+    snow_depth = current.get("snow_depth")
+    if snow_depth is not None:
         snow_depth_inches = round(snow_depth * 39.37, 1)  # Convert meters to inches
     else:
         snow_depth_inches = "N/A"
