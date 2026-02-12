@@ -284,6 +284,7 @@ st.markdown("""
     .layout-weather {
         order: 2;
         margin-top: 20px;
+        padding-bottom: 200px;
     }
 
     /* Desktop: CSS grid with weather as left sidebar */
